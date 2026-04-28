@@ -354,3 +354,48 @@ header {
         grid-template-columns: 1fr;
     }
 }
+
+/* Logo Upload Area */
+.logo-upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 1rem;
+    padding: 2.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    background: rgba(0, 0, 0, 0.02);
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-upload-area:hover {
+    border-color: var(--primary-color);
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.logo-upload-area.dragover {
+    border-color: var(--success);
+    background: rgba(16, 185, 129, 0.05);
+    transform: scale(1.02);
+}
+
+.logo-preview {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.logo-preview img {
+    max-width: 100%;
+    max-height: 150px;
+    object-fit: contain;
+    border-radius: 0.5rem;
+}
