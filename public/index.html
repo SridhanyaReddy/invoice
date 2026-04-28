@@ -155,6 +155,12 @@
                             <hr style="margin: 2rem 0; border: 0; border-top: 1px dashed var(--border-color);">
 
                             <h3 class="section-title">Payment Details</h3>
+                            <div class="form-group">
+                                <label>Total Amount (₹)</label>
+                                <input type="number" id="total-amount" class="form-control" required
+                                    placeholder="0.00">
+                            </div>
+
                             <div class="grid grid-2">
                                 <div class="form-group">
                                     <label>Full Payment Amount (₹)</label>
@@ -167,11 +173,6 @@
                             </div>
 
                             <div class="grid grid-2">
-                                <div class="form-group">
-                                    <label>Total Amount (₹)</label>
-                                    <input type="number" id="total-amount" class="form-control" required
-                                        placeholder="0.00">
-                                </div>
                                 <div class="form-group">
                                     <label>Full Payment Date</label>
                                     <input type="date" id="payment-date" class="form-control">
