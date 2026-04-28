@@ -112,16 +112,19 @@ const app = {
         }
 
         list.innerHTML = invoices.map(inv => `
-            <div class="invoice-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div class="invoice-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem;">
                 <div>
-                    <strong style="font-size: 1.1rem;">${inv.customerName}</strong>
-                    <div style="font-size: 0.85rem; color: var(--text-secondary);">ID: ${inv.invoiceId} | Date: ${new Date(inv.createdAt).toLocaleDateString()}</div>
+                    <strong style="font-size: 1.1rem; color: var(--text-primary); display: block; margin-bottom: 0.25rem;">${inv.customerName}</strong>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                        <span style="margin-right: 1rem;"><i class="fas fa-hashtag"></i> ${inv.invoiceId}</span>
+                        <span><i class="far fa-calendar-alt"></i> ${new Date(inv.createdAt).toLocaleDateString()}</span>
+                    </div>
                 </div>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn btn-secondary" onclick="app.viewInvoice('${inv._id}')" title="View"><i class="fas fa-eye"></i></button>
-                    <button class="btn btn-secondary" onclick="app.editInvoice('${inv._id}')" title="Edit"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-secondary" onclick="app.downloadPDF('${inv._id}')" title="Download"><i class="fas fa-download"></i></button>
-                    <button class="btn btn-secondary" style="color: var(--danger);" onclick="app.deleteInvoice('${inv._id}')" title="Delete"><i class="fas fa-trash"></i></button>
+                <div style="display: flex; gap: 0.75rem;">
+                    <button class="btn btn-secondary glass" onclick="app.viewInvoice('${inv._id}')" title="View"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-secondary glass" onclick="app.editInvoice('${inv._id}')" title="Edit"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-secondary glass" onclick="app.downloadPDF('${inv._id}')" title="Download"><i class="fas fa-download"></i></button>
+                    <button class="btn btn-secondary glass" style="color: var(--danger);" onclick="app.deleteInvoice('${inv._id}')" title="Delete"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
         `).join('');
@@ -146,8 +149,11 @@ const app = {
 
         const pendingBalance = totalRevenue - totalPaid;
 
-        document.getElementById('stat-total-revenue').innerText = `₹${totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-        document.getElementById('stat-pending-balance').innerText = `₹${pendingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+        const formatCurrency = (amount) => `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+        document.getElementById('stat-total-revenue').innerText = formatCurrency(totalRevenue);
+        document.getElementById('stat-total-paid').innerText = formatCurrency(totalPaid);
+        document.getElementById('stat-pending-balance').innerText = formatCurrency(pendingBalance);
         document.getElementById('stat-total-invoices').innerText = totalInvoices;
     },
 
