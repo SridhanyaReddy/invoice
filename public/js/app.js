@@ -63,6 +63,7 @@ const app = {
             localStorage.setItem('backup_invoices', JSON.stringify(invoices));
 
             this.renderInvoices(invoices);
+            this.updateDashboardStats();
             this.fillSettingsForm();
         } catch (err) {
             console.error('Failed to load data from server, using local fallback', err);
@@ -75,6 +76,7 @@ const app = {
             if (backupInvoices) this.state.invoices = JSON.parse(backupInvoices);
 
             this.renderInvoices(this.state.invoices);
+            this.updateDashboardStats();
             this.fillSettingsForm();
         } finally {
             this.showLoading(false);
@@ -122,6 +124,30 @@ const app = {
                 </div>
             </div>
         `).join('');
+    },
+
+    updateDashboardStats() {
+        const invoices = this.state.invoices || [];
+        const totalInvoices = invoices.length;
+        
+        let totalRevenue = 0;
+        let totalPaid = 0;
+
+        invoices.forEach(inv => {
+            totalRevenue += Number(inv.totalAmount) || 0;
+            
+            const advance = Number(inv.advancePayment) || 0;
+            const full = Number(inv.fullPayment) || 0;
+            const installmentsTotal = (inv.installments || []).reduce((sum, inst) => sum + (Number(inst.amount) || 0), 0);
+            
+            totalPaid += (advance + full + installmentsTotal);
+        });
+
+        const pendingBalance = totalRevenue - totalPaid;
+
+        document.getElementById('stat-total-revenue').innerText = `₹${totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+        document.getElementById('stat-pending-balance').innerText = `₹${pendingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+        document.getElementById('stat-total-invoices').innerText = totalInvoices;
     },
 
     async handleInvoiceSubmit(e, shouldDownload = false) {
@@ -180,6 +206,7 @@ const app = {
 
             localStorage.setItem('backup_invoices', JSON.stringify(this.state.invoices));
             this.renderInvoices(this.state.invoices);
+            this.updateDashboardStats();
 
             if (shouldDownload) {
                 this.downloadPDF(localId);
@@ -229,6 +256,7 @@ const app = {
             this.state.invoices = this.state.invoices.filter(i => i._id !== id);
             localStorage.setItem('backup_invoices', JSON.stringify(this.state.invoices));
             this.renderInvoices(this.state.invoices);
+            this.updateDashboardStats();
             this.showToast('Server error - deleted locally', 'warning');
         } finally {
             this.showLoading(false);
