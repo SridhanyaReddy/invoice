@@ -15,18 +15,26 @@ router.get('/', async (req, res) => {
 // Save or Update Organization details
 router.post('/', async (req, res) => {
     try {
+        console.log('Received organization update request');
+        if (req.body.logo) {
+            console.log('Logo data received, length:', req.body.logo.length);
+        } else {
+            console.log('No logo data in request');
+        }
+
         let org = await Organization.findOne();
         if (org) {
-            // Update
+            console.log('Updating existing organization');
             Object.assign(org, req.body);
             await org.save();
         } else {
-            // Create
+            console.log('Creating new organization');
             org = new Organization(req.body);
             await org.save();
         }
         res.json(org);
     } catch (err) {
+        console.error('Error saving organization:', err);
         res.status(400).json({ message: err.message });
     }
 });
