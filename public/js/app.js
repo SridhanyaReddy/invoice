@@ -33,7 +33,30 @@ const app = {
         document.getElementById('settings-form').addEventListener('submit', (e) => this.handleSettingsSubmit(e));
 
         // Logo Upload
-        document.getElementById('org-logo-input').addEventListener('change', (e) => this.handleLogoUpload(e));
+        const dropZone = document.getElementById('logo-drop-zone');
+        const fileInput = document.getElementById('org-logo-input');
+
+        if (dropZone && fileInput) {
+            dropZone.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => this.handleLogoUpload(e));
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            ['dragleave', 'dragend'].forEach(type => {
+                dropZone.addEventListener(type, () => dropZone.classList.remove('dragover'));
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file) this.handleLogoUpload(file);
+            });
+        }
 
         // Search
         document.getElementById('search-btn').addEventListener('click', () => this.handleSearch());
@@ -296,15 +319,24 @@ const app = {
         }
     },
 
-    handleLogoUpload(e) {
-        const file = e.target.files[0];
+    handleLogoUpload(fileOrEvent) {
+        const file = fileOrEvent.target ? fileOrEvent.target.files[0] : fileOrEvent;
         if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            this.showToast('Please upload an image file', 'error');
+            return;
+        }
 
         const reader = new FileReader();
         reader.onload = (event) => {
             const base64 = event.target.result;
             this.state.tempLogo = base64;
-            document.getElementById('logo-preview').innerHTML = `<img src="${base64}" style="width: 100%; height: 100%; object-fit: contain;">`;
+            const preview = document.getElementById('logo-preview');
+            preview.innerHTML = `
+                <img src="${base64}" style="max-width: 100%; max-height: 150px; object-fit: contain;">
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">Click or drag to change</p>
+            `;
         };
         reader.readAsDataURL(file);
     },
@@ -316,7 +348,10 @@ const app = {
         document.getElementById('org-email').value = org.email || '';
         document.getElementById('org-phone').value = org.phone || '';
         if (org.logo) {
-            document.getElementById('logo-preview').innerHTML = `<img src="${org.logo}" style="width: 100%; height: 100%; object-fit: contain;">`;
+            document.getElementById('logo-preview').innerHTML = `
+                <img src="${org.logo}" style="max-width: 100%; max-height: 150px; object-fit: contain;">
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">Click or drag to change</p>
+            `;
         }
     },
 
