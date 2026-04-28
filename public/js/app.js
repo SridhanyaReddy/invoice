@@ -9,6 +9,7 @@ const app = {
         this.bindEvents();
         this.applyTheme();
         this.loadData();
+        this.bindModalEvents();
     },
 
     bindEvents() {
@@ -423,8 +424,15 @@ const app = {
         const content = this.generateInvoiceHTML(inv, org);
         document.getElementById('modal-content').innerHTML = content;
         document.getElementById('invoice-modal').style.display = 'flex';
-        
-        document.getElementById('modal-download-btn').onclick = () => this.downloadPDF(id);
+    },
+
+    bindModalEvents() {
+        const modal = document.getElementById('invoice-modal');
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeModal();
+            }
+        });
     },
 
     closeModal() {
