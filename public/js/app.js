@@ -35,9 +35,13 @@ const app = {
         // Logo Upload
         const dropZone = document.getElementById('logo-drop-zone');
         const fileInput = document.getElementById('org-logo-input');
+        const removeBtn = document.getElementById('remove-logo-btn');
 
         if (dropZone && fileInput) {
-            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('click', (e) => {
+                if (e.target.closest('#remove-logo-btn')) return;
+                fileInput.click();
+            });
             
             fileInput.addEventListener('change', (e) => this.handleLogoUpload(e));
 
@@ -55,6 +59,13 @@ const app = {
                 dropZone.classList.remove('dragover');
                 const file = e.dataTransfer.files[0];
                 if (file) this.handleLogoUpload(file);
+            });
+        }
+
+        if (removeBtn) {
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.removeLogo();
             });
         }
 
@@ -301,14 +312,19 @@ const app = {
             name: document.getElementById('org-name').value,
             email: document.getElementById('org-email').value,
             phone: document.getElementById('org-phone').value,
-            logo: this.state.tempLogo || (this.state.organization ? this.state.organization.logo : null)
+            logo: this.state.tempLogo !== undefined ? this.state.tempLogo : (this.state.organization ? this.state.organization.logo : null)
         };
+
+        console.log('Saving organization settings...', { ...data, logo: data.logo ? data.logo.substring(0, 50) + '...' : null });
 
         try {
             const updated = await api.saveOrganization(data);
+            console.log('Organization saved successfully:', updated._id);
             this.state.organization = updated;
+            this.state.tempLogo = undefined; // Reset temp logo
             this.showToast('Settings saved successfully');
             localStorage.setItem('backup_org', JSON.stringify(updated));
+            this.fillSettingsForm(); // Refresh form to show saved logo
         } catch (err) {
             console.error('API failed, saving settings to local backup', err);
             this.state.organization = data;
@@ -328,17 +344,35 @@ const app = {
             return;
         }
 
+        console.log('Processing logo file:', file.name, file.size);
+
         const reader = new FileReader();
         reader.onload = (event) => {
             const base64 = event.target.result;
+            console.log('Logo converted to base64, length:', base64.length);
             this.state.tempLogo = base64;
+            
             const preview = document.getElementById('logo-preview');
             preview.innerHTML = `
                 <img src="${base64}" style="max-width: 100%; max-height: 150px; object-fit: contain;">
                 <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">Click or drag to change</p>
             `;
+            document.getElementById('remove-logo-btn').style.display = 'block';
         };
         reader.readAsDataURL(file);
+    },
+
+    removeLogo() {
+        console.log('Removing logo...');
+        this.state.tempLogo = null;
+        const preview = document.getElementById('logo-preview');
+        preview.innerHTML = `
+            <i class="fas fa-cloud-upload-alt fa-3x mb-2" style="color: var(--primary-color);"></i>
+            <p>Drag & Drop your logo here</p>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">or click to browse</p>
+        `;
+        document.getElementById('remove-logo-btn').style.display = 'none';
+        document.getElementById('org-logo-input').value = '';
     },
 
     fillSettingsForm() {
@@ -347,11 +381,24 @@ const app = {
         document.getElementById('org-name').value = org.name || '';
         document.getElementById('org-email').value = org.email || '';
         document.getElementById('org-phone').value = org.phone || '';
+        
+        const preview = document.getElementById('logo-preview');
+        const removeBtn = document.getElementById('remove-logo-btn');
+
         if (org.logo) {
-            document.getElementById('logo-preview').innerHTML = `
+            console.log('Filling form with saved logo');
+            preview.innerHTML = `
                 <img src="${org.logo}" style="max-width: 100%; max-height: 150px; object-fit: contain;">
                 <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">Click or drag to change</p>
             `;
+            if (removeBtn) removeBtn.style.display = 'block';
+        } else {
+            preview.innerHTML = `
+                <i class="fas fa-cloud-upload-alt fa-3x mb-2" style="color: var(--primary-color);"></i>
+                <p>Drag & Drop your logo here</p>
+                <p style="font-size: 0.8rem; color: var(--text-secondary);">or click to browse</p>
+            `;
+            if (removeBtn) removeBtn.style.display = 'none';
         }
     },
 
