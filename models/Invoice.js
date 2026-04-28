@@ -8,6 +8,12 @@ const InvoiceSchema = new mongoose.Schema({
     address: { type: String, required: true },
     eventName: { type: String },
     packageDetails: { type: String },
+    items: [{
+        description: { type: String },
+        quantity: { type: Number },
+        rate: { type: Number },
+        amount: { type: Number }
+    }],
     totalAmount: { type: Number, required: true },
     advancePayment: { type: Number, default: 0 },
     advanceDate: { type: Date },
