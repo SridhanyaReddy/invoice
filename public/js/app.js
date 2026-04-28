@@ -41,9 +41,10 @@ const app = {
         });
 
         // Balance Calculation
-        ['total-amount', 'advance-payment'].forEach(id => {
+        ['total-amount', 'advance-payment', 'full-payment-amount'].forEach(id => {
             document.getElementById(id).addEventListener('input', () => this.updateBalance());
         });
+        document.getElementById('payment-date').addEventListener('input', () => this.updateBalance());
     },
 
     async loadData() {
@@ -140,6 +141,8 @@ const app = {
             totalAmount: Number(document.getElementById('total-amount').value),
             advancePayment: Number(document.getElementById('advance-payment').value),
             advanceDate: document.getElementById('advance-date').value || null,
+            fullPayment: Number(document.getElementById('full-payment-amount').value) || 0,
+            fullPaymentDate: document.getElementById('payment-date').value || null,
             installments: this.getInstallmentsFromForm(),
             invoiceId: customId || `INV-${Date.now().toString().slice(-6)}`
         };
@@ -206,6 +209,8 @@ const app = {
         document.getElementById('total-amount').value = inv.totalAmount || 0;
         document.getElementById('advance-payment').value = inv.advancePayment;
         document.getElementById('advance-date').value = inv.advanceDate ? inv.advanceDate.split('T')[0] : '';
+        document.getElementById('full-payment-amount').value = inv.fullPayment || 0;
+        document.getElementById('payment-date').value = inv.fullPaymentDate ? inv.fullPaymentDate.split('T')[0] : '';
         
         this.renderInstallmentsInForm(inv.installments || []);
         this.updateBalance();
@@ -294,6 +299,8 @@ const app = {
         document.getElementById('invoice-form').reset();
         document.getElementById('invoice-mongodb-id').value = '';
         document.getElementById('invoice-custom-id').value = '';
+        document.getElementById('full-payment-amount').value = 0;
+        document.getElementById('payment-date').value = '';
         document.getElementById('submit-btn-text').innerText = 'Save Invoice';
         document.getElementById('installments-container').innerHTML = '';
         this.updateBalance();
@@ -340,10 +347,11 @@ const app = {
     updateBalance() {
         const total = Number(document.getElementById('total-amount').value) || 0;
         const advance = Number(document.getElementById('advance-payment').value) || 0;
+        const fullPayment = Number(document.getElementById('full-payment-amount').value) || 0;
         
         const installmentTotal = this.getInstallmentsFromForm().reduce((sum, inst) => sum + inst.amount, 0);
         
-        const remaining = total - advance - installmentTotal;
+        const remaining = total - advance - installmentTotal - fullPayment;
         document.getElementById('remaining-balance-display').innerText = `₹${remaining.toFixed(2)}`;
     },
 
@@ -447,6 +455,12 @@ const app = {
                             <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">${inv.advanceDate ? new Date(inv.advanceDate).toLocaleDateString() : '-'}</td>
                             <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">-₹${inv.advancePayment.toFixed(2)}</td>
                         </tr>
+                        ${inv.fullPayment ? `
+                        <tr style="color: var(--success); font-weight: bold;">
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">Full/Additional Payment</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">${inv.fullPaymentDate ? new Date(inv.fullPaymentDate).toLocaleDateString() : '-'}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">-₹${inv.fullPayment.toFixed(2)}</td>
+                        </tr>` : ''}
                         ${inv.installments.map(inst => `
                             <tr style="color: var(--primary-color);">
                                 <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">Installment: ${inst.description || 'Scheduled'}</td>
@@ -458,7 +472,7 @@ const app = {
                     <tfoot>
                         <tr style="font-weight: bold; font-size: 1.2rem;">
                             <td colspan="2" style="padding: 12px; text-align: right;">REMAINING BALANCE:</td>
-                            <td style="padding: 12px; text-align: right; color: #ef4444;">₹${(inv.totalAmount - inv.advancePayment - inv.installments.reduce((s, i) => s + i.amount, 0)).toFixed(2)}</td>
+                            <td style="padding: 12px; text-align: right; color: #ef4444;">₹${(inv.totalAmount - inv.advancePayment - (inv.fullPayment || 0) - inv.installments.reduce((s, i) => s + i.amount, 0)).toFixed(2)}</td>
                         </tr>
                     </tfoot>
                 </table>
